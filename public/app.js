@@ -3,7 +3,6 @@ const bookList = document.getElementById("bookList");
 
 // Ask the GraphQL API for all books, then show them on the page.
 async function loadBooks() {
-  // The query — same one you've run in Sandbox, just sent by code.
   const query = `
     query {
       books {
@@ -36,3 +35,39 @@ async function loadBooks() {
 
 // Run it as soon as the page loads.
 loadBooks();
+
+// --- Add-a-book form ---
+
+// Find the form and its inputs.
+const addForm = document.getElementById("addForm");
+const titleInput = document.getElementById("titleInput");
+const authorInput = document.getElementById("authorInput");
+
+// When the form is submitted, send an addBook mutation, then refresh the list.
+addForm.addEventListener("submit", async (event) => {
+  // Stop the browser's default form behaviour (which would reload the page).
+  event.preventDefault();
+
+  // The mutation, with the typed values passed as variables.
+  const mutation = `
+    mutation AddBook($title: String!, $author: String!) {
+      addBook(title: $title, author: $author) {
+        id
+      }
+    }
+  `;
+
+  await fetch("/graphql", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      query: mutation,
+      variables: { title: titleInput.value, author: authorInput.value },
+    }),
+  });
+
+  // Clear the inputs and reload the list so the new book shows.
+  titleInput.value = "";
+  authorInput.value = "";
+  loadBooks();
+});
