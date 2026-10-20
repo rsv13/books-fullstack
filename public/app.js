@@ -28,8 +28,16 @@ async function loadBooks() {
   bookList.innerHTML = "";
   for (const book of books) {
     const li = document.createElement("li");
-    li.textContent = `${book.title} — ${book.author}`;
-    bookList.appendChild(li);
+    li.textContent = ` ${book.title} — ${book.author} `;
+    
+
+    // A delete button for this specific book.
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.addEventListener("click", () => deleteBook(book.id));
+
+        li.appendChild(deleteButton);
+        bookList.appendChild(li);
   }
 }
 
@@ -71,3 +79,25 @@ addForm.addEventListener("submit", async (event) => {
   authorInput.value = "";
   loadBooks();
 });
+
+// Send a deleteBook mutation for the given id, then refresh the list.
+async function deleteBook(id) {
+  const mutation = `
+    mutation DeleteBook($id: ID!) {
+      deleteBook(id: $id) {
+        id
+      }
+    }
+  `;
+
+  await fetch("/graphql", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      query: mutation,
+      variables: { id },
+    }),
+  });
+
+  loadBooks();
+}
